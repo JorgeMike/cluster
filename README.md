@@ -224,6 +224,30 @@ volumes:
 docker stack deploy -c spark-compose.yml sparkcluster
 ```
 
+### 📋 Logs y monitoreo (solo Master)
+
+#### Para observar al master
+
+```bash
+docker service logs sparkcluster_spark-master -f
+
+docker service ps sparkcluster_spark-master
+```
+
+#### Para observar jupyter
+
+```bash
+docker service logs sparkcluster_jupyter -f
+
+docker service ps sparkcluster_jupyter
+```
+
+#### Estado de todos
+
+```bash
+docker stack ps sparkcluster
+```
+
 ### 🌐 Interfaces disponibles (accesibles desde Master)
 
 ```
@@ -263,30 +287,6 @@ if "txn_amount" in df.columns:
 # Operación simple: contar cuántas filas tiene cada archivo si tienen columna identificadora
 if "txn_id" in df.columns:
     df.groupBy("txn_id").count().show()
-```
-
-### 📋 Logs y monitoreo (solo Master)
-
-#### Para observar al master
-
-```bash
-docker service logs sparkcluster_spark-master -f
-
-docker service ps sparkcluster_spark-master
-```
-
-#### Para observar jupyter
-
-```bash
-docker service logs sparkcluster_jupyter -f
-
-docker service ps sparkcluster_jupyter
-```
-
-#### Estado de ambos servicios
-
-```bash
-docker service ps sparkcluster_spark-master sparkcluster_jupyter
 ```
 
 ---
