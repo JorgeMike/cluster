@@ -8,6 +8,20 @@
 - [Paso 6: Probar con PySpark](#paso-6-probar-el-clúster-con-código-pyspark)
 - [Cierre de sesión](#cierre-seguro-de-sesión-fin-de-jornada)
 
+# Instalaciones necesarias
+
+# Solo Master
+
+```bash
+sudo apt update
+sudo apt install nfs-kernel-server -y
+```
+
+# Master y Nodos
+
+```bash
+sudo apt install nfs-common -y
+```
 
 ## Datos de prueba
 
@@ -52,6 +66,21 @@ sudo nmcli connection modify "Wired connection 1" \
 
 sudo nmcli connection down "Wired connection 1"
 sudo nmcli connection up   "Wired connection 1"
+```
+
+### 🧼 Desmontar y limpiar puntos de montaje NFS (Master y Nodos)
+Antes de volver a montar el NFS, asegúrate de desmontar y eliminar el punto de montaje local:
+
+```bash
+sudo umount /mnt/datos_jupyter 2>/dev/null || echo "No estaba montado"
+sudo rm -rf /mnt/datos_jupyter
+```
+
+### 🧨 (Opcional) Eliminar carpeta de datos NFS (solo Master)
+Si deseas borrar los datos previamente compartidos:
+
+```bash
+sudo rm -rf /srv/nfs/datos_jupyter
 ```
 
 ---
@@ -141,9 +170,6 @@ docker swarm join-token worker
 #### Paso 1: Preparar el servidor NFS (solo Master)
 
 ```bash
-sudo apt update
-sudo apt install nfs-kernel-server -y
-
 sudo mkdir -p /srv/nfs/datos_jupyter
 sudo chmod -R 777 /srv/nfs/datos_jupyter
 ```
@@ -168,8 +194,6 @@ sudo systemctl restart nfs-kernel-server
 #### Paso 3: Montar NFS en todos los nodos (Master y Nodos)
 
 ```bash
-sudo apt install nfs-common -y
-
 sudo mkdir -p /mnt/datos_jupyter
 sudo mount -t nfs 192.168.0.1:/srv/nfs/datos_jupyter /mnt/datos_jupyter
 ```
