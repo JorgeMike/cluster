@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  dhcp:
+    image: jpillora/dnsmasq
+    container_name: dhcp
+    restart: unless-stopped
+    network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    command:
+      - "-k"
+      - "--port=0"
+      - "--log-facility=-"
+      - "--interface=enx68e43b307d75"
+      - "--dhcp-authoritative"
+      - "--dhcp-range=192.168.0.10,192.168.0.150,255.255.255.0"
