@@ -8,20 +8,6 @@
 - [Paso 6: Probar con PySpark](#paso-6-probar-el-clúster-con-código-pyspark)
 - [Cierre de sesión](#cierre-seguro-de-sesión-fin-de-jornada)
 
-# Instalaciones necesarias
-
-# Solo Master
-
-```bash
-sudo apt update
-sudo apt install nfs-kernel-server -y
-```
-
-# Master y Nodos
-
-```bash
-sudo apt install nfs-common -y
-```
 
 ## Datos de prueba
 
@@ -66,21 +52,6 @@ sudo nmcli connection modify "Wired connection 1" \
 
 sudo nmcli connection down "Wired connection 1"
 sudo nmcli connection up   "Wired connection 1"
-```
-
-### 🧼 Desmontar y limpiar puntos de montaje NFS (Master y Nodos)
-Antes de volver a montar el NFS, asegúrate de desmontar y eliminar el punto de montaje local:
-
-```bash
-sudo umount /mnt/datos_jupyter 2>/dev/null || echo "No estaba montado"
-sudo rm -rf /mnt/datos_jupyter
-```
-
-### 🧨 (Opcional) Eliminar carpeta de datos NFS (solo Master)
-Si deseas borrar los datos previamente compartidos:
-
-```bash
-sudo rm -rf /srv/nfs/datos_jupyter
 ```
 
 ---
@@ -170,6 +141,9 @@ docker swarm join-token worker
 #### Paso 1: Preparar el servidor NFS (solo Master)
 
 ```bash
+sudo apt update
+sudo apt install nfs-kernel-server -y
+
 sudo mkdir -p /srv/nfs/datos_jupyter
 sudo chmod -R 777 /srv/nfs/datos_jupyter
 ```
@@ -194,6 +168,8 @@ sudo systemctl restart nfs-kernel-server
 #### Paso 3: Montar NFS en todos los nodos (Master y Nodos)
 
 ```bash
+sudo apt install nfs-common -y
+
 sudo mkdir -p /mnt/datos_jupyter
 sudo mount -t nfs 192.168.0.1:/srv/nfs/datos_jupyter /mnt/datos_jupyter
 ```
@@ -217,35 +193,31 @@ volumes:
       o: "addr=192.168.0.1,nolock,soft,rw"
       device: ":/srv/nfs/datos_jupyter"
 ```
+### Paso 5.2: Asignar el rol a cada nodo y modificar el compose
 
-### 🚀 Paso 5.2: Desplegar el stack de Spark (solo Master)
+### Paso 5.2.1: Asignar tipo a cada nodo:
+
+```bash
+# Ejemplo
+docker node update --label-add tipo=[TIPO] [NombreDelHostname]
+# El nombre de los hostname se puede sacar con docker node ls
+```
+
+```bash
+docker node update --label-add tipo=high ubuntu-ASUS-TUF-Gaming-F15-FX506HF-FX506HF
+docker node update --label-add tipo=high roberto-baeza
+docker node update --label-add tipo=high bruno
+docker node update --label-add tipo=high yago
+```
+
+# Paso 5.2.2: Modificar el compose
+
+En el archivo `spark-compose.yml` en cada uno de los tipos de worker (`spark-worker-low`, `spark-worker-medium`, `spark-worker-high`) se debe adaptar el numero de replicas que se deben asignar
+
+### 🚀 Paso 5.3: Desplegar el stack de Spark (solo Master)
 
 ```bash
 docker stack deploy -c spark-compose.yml sparkcluster
-```
-
-### 📋 Logs y monitoreo (solo Master)
-
-#### Para observar al master
-
-```bash
-docker service logs sparkcluster_spark-master -f
-
-docker service ps sparkcluster_spark-master
-```
-
-#### Para observar jupyter
-
-```bash
-docker service logs sparkcluster_jupyter -f
-
-docker service ps sparkcluster_jupyter
-```
-
-#### Estado de todos
-
-```bash
-docker stack ps sparkcluster
 ```
 
 ### 🌐 Interfaces disponibles (accesibles desde Master)
@@ -287,6 +259,30 @@ if "txn_amount" in df.columns:
 # Operación simple: contar cuántas filas tiene cada archivo si tienen columna identificadora
 if "txn_id" in df.columns:
     df.groupBy("txn_id").count().show()
+```
+
+### 📋 Logs y monitoreo (solo Master)
+
+#### Para observar al master
+
+```bash
+docker service logs sparkcluster_spark-master -f
+
+docker service ps sparkcluster_spark-master
+```
+
+#### Para observar jupyter
+
+```bash
+docker service logs sparkcluster_jupyter -f
+
+docker service ps sparkcluster_jupyter
+```
+
+#### Estado de ambos servicios
+
+```bash
+docker service ps sparkcluster_spark-master sparkcluster_jupyter
 ```
 
 ---

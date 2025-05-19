@@ -50,7 +50,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.hostname == miguel2
+          - node.labels.tipo == low
     volumes:
       - datos_jupyter:/data
       - datos_jupyter:/home/jovyan/work
@@ -66,10 +66,11 @@ services:
     networks:
       - spark-net
     deploy:
-      replicas: 1
+      replicas: 2
       placement:
         constraints:
-          - node.hostname == nodo2
+          - node.labels.tipo == medium
+
     volumes:
       - datos_jupyter:/data
       - datos_jupyter:/home/jovyan/work
@@ -84,10 +85,13 @@ services:
     networks:
       - spark-net
     deploy:
-      replicas: 1
+      replicas: 3
       placement:
         constraints:
-          - node.hostname == nodo3
+          - node.labels.tipo == high
+    volumes:
+      - datos_jupyter:/data
+      - datos_jupyter:/home/jovyan/work
 
 networks:
   spark-net:
